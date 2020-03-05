@@ -1,0 +1,92 @@
+buildscript {
+	ext {
+		lombokVersion = '1.18.2'
+		junitVersion = '4.12'
+		assertJVersion = '3.11.1'
+		mockitoVersion = '2.23.4'
+		csvMapperVersion = '6.0.10'
+		jacksonVersion = '2.9.7'
+
+	}
+
+	repositories {
+		mavenLocal()
+		maven { url "https://artifactory.appdirect.tools/artifactory/repo" }
+		mavenCentral()
+		jcenter()
+		maven { url "https://plugins.gradle.org/m2/" }
+	}
+
+	dependencies {
+		classpath("junit:junit:${junitVersion}")
+		classpath("com.appdirect.billing.tools:swagger-codegen-spring-template:0.8.0-rc2")
+		classpath("com.appdirect.billing.tools:swagger-codegen-gradle-plugin:0.8.0-rc2")
+		classpath("com.appdirect.billing.tools:swagger-codegen-retrofit-template:0.8.0-rc2")
+	}
+}
+
+plugins {
+	id 'java'
+	id 'idea'
+	id 'pl.allegro.tech.build.axion-release' version '1.7.2'
+	id "org.springframework.boot" version "2.1.9.RELEASE" apply false
+	id "io.spring.dependency-management" version "1.0.8.RELEASE" apply false
+}
+
+group = 'com.meteredUsageTaurus'
+version = '0.0.1-SNAPSHOT'
+sourceCompatibility = '11'
+targetCompatibility = '11'
+
+
+allprojects {
+	repositories {
+		mavenLocal()
+		maven { url "https://artifactory.appdirect.tools/artifactory/repo" }
+		mavenCentral()
+		jcenter()
+		maven { url "https://plugins.gradle.org/m2/" }
+	}
+}
+
+subprojects {
+	group project.parent.group
+//	version "${project.parent.version}${versionSuffix}"
+	sourceCompatibility = 1.11
+	targetCompatibility = 1.11
+
+	apply plugin: 'java'
+	apply plugin: 'idea'
+	apply plugin: "io.spring.dependency-management"
+
+	/*test {
+		useJUnit()
+	}*/
+
+	dependencyManagement {
+		imports {
+			mavenBom 'org.springframework.cloud:spring-cloud-dependencies:Greenwich.SR1'
+			mavenBom org.springframework.boot.gradle.plugin.SpringBootPlugin.BOM_COORDINATES
+		}
+	}
+
+	dependencies {
+
+		testCompile group: 'org.springframework', name: 'spring-test', version: '5.1.10.RELEASE'
+		compile group: 'org.springframework', name: 'spring-test', version: '5.1.10.RELEASE'
+		compile 'org.springframework.boot:spring-boot-starter'
+		compile group: 'javax.xml.bind', name: 'jaxb-api', version: '2.2.4'
+		compile "org.projectlombok:lombok:${lombokVersion}"
+		annotationProcessor "org.projectlombok:lombok:${lombokVersion}"
+		testCompile group: 'junit', name: 'junit', version: '4.12'
+		testCompile "org.projectlombok:lombok:${lombokVersion}"
+		testAnnotationProcessor "org.projectlombok:lombok:${lombokVersion}"
+		testImplementation('org.springframework.boot:spring-boot-starter-test') {
+			exclude group: 'org.junit.vintage', module: 'junit-vintage-engine'
+		}
+	}
+}
+
+/*test {
+	useJUnitPlatform()
+}*/

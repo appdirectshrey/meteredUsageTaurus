@@ -1,0 +1,239 @@
+swagger: '2.0'
+
+#######################################################################################
+
+info:
+  version: '0.3'
+  title: meteredusage
+  description: Metered Usage API V2
+
+#######################################################################################
+
+schemes:
+  - https
+produces:
+  - application/json
+consumes:
+  - application/json
+basePath: /api/integration/v2
+
+#######################################################################################
+
+paths:
+  #-----------------------------------------------------------------------------------
+  /billing/usage:
+    post:
+      summary: Metered Usage API that supports higher scalability and fits in with the larger Fusion system
+      operationId: meteredUsage
+      parameters:
+        - name: body
+          in: body
+          required: true
+          schema:
+            $ref: '#/definitions/MeteredUsageRequest'
+      tags:
+        - meteredUsage
+      description: Returns 202 accepted if the usage was reported.
+      responses:
+        '202':
+          $ref: '#/responses/MeteredUsageRequestAcceptedResponse'
+        '400':
+          description: Invalid Request
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+        '404':
+          description: Not Found
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+        '500':
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+  #------------------------------------------------------------------------------------
+  /internal/billing/usage:
+    post:
+      summary: Metered Usage API that supports internal AppDirect services to submit usages
+      parameters:
+        - name: AD-Authorization
+          in: header
+          type: string
+          required: true
+        - name: body
+          in: body
+          required: true
+          schema:
+            $ref: '#/definitions/InternalMeteredUsageRequest'
+      tags:
+        - meteredUsage
+      description: Returns 202 accepted if the usage was reported.
+      responses:
+        '202':
+          $ref: '#/responses/MeteredUsageRequestAcceptedResponse'
+        '400':
+          description: Invalid Request
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+        '404':
+          description: Not Found
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+        '500':
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+#######################################################################################
+
+responses:
+  #------------------------------------------------------------------------------------
+  MeteredUsageRequestAcceptedResponse:
+    description: "response sent back when usage was reported and accepted"
+    schema:
+      $ref: '#/definitions/MeteredUsageRequestAccepted'
+
+#######################################################################################
+
+definitions:
+
+  ErrorResponse:
+    type: object
+    required:
+      - code
+      - status
+    properties:
+      status:
+        type: integer
+        example: 400
+        description: The HTTP status code on the response.
+        minimum: 100.0
+        maximum: 599
+      code:
+        type: string
+        example: INVALID_TRANSACTION
+        description: The error code, in SCREAMING_SNAKE_CASE.
+        pattern: ^[A-Z]+(_[A-Z]+)*$
+      message:
+        type: string
+        example: Request criteria not met.
+        description: Descriptive message summarizing the error.
+
+  MeteredUsageRequestAccepted:
+    type: object
+    description: Metered usage request has been accepted and processed
+    properties:
+      requestId:
+        type: string
+        description: identifier to the newly created report request
+      idempotencyKey:
+        type: string
+        description: idempotency key
+
+  MeteredUsageRequest:
+    type: object
+    required:
+      - idempotencyKey
+      - billable
+      - usages
+    properties:
+      idempotencyKey:
+        type: string
+        description: "idempotencyKey"
+      billable:
+        type: boolean
+        description: "tells whether usages are billable or estimated"
+        required: true
+      usages:
+        type: array
+        items:
+          $ref: '#/definitions/MeteredUsageItem'
+
+  InternalMeteredUsageRequest:
+    type: object
+    required:
+      - idempotencyKey
+      - billable
+      - usages
+    properties:
+      idempotencyKey:
+        type: string
+        description: "idempotencyKey"
+      billable:
+        type: boolean
+        description: "tells whether usages are billable or estimated"
+        required: true
+      usages:
+        type: array
+        items:
+          $ref: '#/definitions/InternalMeteredUsageItem'
+
+  MeteredUsageItem:
+    type: object
+    required:
+      - accountId
+      - usageList
+    properties:
+      accountId:
+        type: string
+        description: "Developer Account Id identifying company entitlement"
+      usageList:
+        type: array
+        items:
+          $ref: '#/definitions/UsageItem'
+
+  InternalMeteredUsageItem:
+    type: object
+    required:
+      - accountId
+      - subscriptionId
+      - usageList
+    properties:
+      accountId:
+        type: string
+        description: "Developer Account Id identifying company entitlement"
+      subscriptionId:
+        type: string
+        description: "Subscription Id for the product"
+      usageList:
+        type: array
+        items:
+          $ref: '#/definitions/UsageItem'
+
+
+  UsageItem:
+    type: object
+    required:
+      - quantity
+      - eventDate
+    properties:
+      eventId:
+        type: string
+      eventDate:
+        type: string
+        format: date-time
+      pricingUnit:
+        type: string
+        description: "reported usage unit"
+      customUnit:
+        type: string
+      quantity:
+        type: string
+        exclusiveMinimum: false
+      unitPrice:
+        type: string
+        x-minimum: 0
+        exclusiveMinimum: false
+      description:
+        type: string
+      currency:
+        type: string
+      attributes:
+        type: object
+        additionalProperties:
+          type: string
+
+  AttributeItem:
+    type: object
+    properties:
+      attributes:
+        type: object
+        additionalProperties:
+          type: string

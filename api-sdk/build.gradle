@@ -1,0 +1,68 @@
+
+apply plugin: 'com.appdirect.billing.swagger'
+
+swaggerExtension {
+    meteredUsageClientApi {
+        inputSpec = "${rootDir}/api-sdk/src/main/resources/api-spec.yaml"
+        outputDir = "${buildDir}/swagger-code"
+        lang = 'com.appdirect.billing.swagger.codegen.retrofit.RetrofitGenerator'
+        apiPackage = "com.appdirect.tools"
+        modelPackage = "com.appdirect.tools.dto"
+        modelNameSuffix = "Dto"
+        additionalProperties = [
+                "dateLibrary"  : "java8",
+                "interfaceOnly": "true",
+                "jackson"      : "true"
+        ]
+        skipOverwrite = false
+        systemProperties = [
+                "models"    : "",
+                "apis"      : "",
+                "apiTests"  : "false",
+                "apiDocs"   : "false",
+                "modelDocs" : "false",
+                "modelTests": "false"
+        ]
+        validationMandatory = true
+    }
+}
+
+
+dependencies {
+
+    compile(
+            // swagger
+            "io.swagger:swagger-annotations:1.5.16",
+
+            compile("com.appdirect.billing.microservice.platform:billing-retrofit:0.5.0-rc2") {
+                exclude group: "org.springframework.security", module: 'spring-security-jwt'
+                exclude group: "org.springframework.security.oauth",
+                        module: 'spring-security-oauth'
+                exclude group: "org.springframework.security.oauth", module: 'spring-security-oauth2'
+            },
+
+            "com.squareup.retrofit2:retrofit:2.4.0",
+            "com.squareup.retrofit2:converter-jackson:2.4.0",
+//            "com.squareup.retrofit2:adapter-java8:2.4.0",
+            "net.rakugakibox.spring.boot:orika-spring-boot-starter:1.8.0",
+            "org.springframework.cloud:spring-cloud-starter-zipkin:2.1.0.RELEASE",
+            "io.zipkin.brave:brave-instrumentation-okhttp3:5.5.1"
+    )
+}
+
+
+sourceSets.main.java.srcDirs += ["${buildDir}/swagger-code/src/main/java"]
+
+task fatJar(type: Jar) {
+    manifest {
+        attributes 'Implementation-Title': 'Taurus1',
+                'Implementation-Version': 2.0,
+                'Main-Class': 'com/appdirect/tools/MeteredUsageTaurusApplication'
+    }
+    baseName = project.name + '-all'
+    from { configurations.testCompile.collect { it.isDirectory() ? it : zipTree(it) } }
+    from { configurations.compile.collect { it.isDirectory() ? it : zipTree(it) } }
+//    from { (configurations.runtime).collect { it.isDirectory() ? it : zipTree(it) } }
+    exclude('/**/module-info.class', '/**/ModuleUtils.class', '/**/ModuleUtil.class', 'META-INF/*.SF', 'META-INF/*.DSA', 'META-INF/*.RSA', '/**/ModuleUtils$ModuleReferenceScanner.class')
+    with jar
+}

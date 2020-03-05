@@ -1,0 +1,31 @@
+appdirect:
+  services:
+    default-configuration:
+      # Timeout are in milliseconds
+      connect-timeout: 10
+      read-timeout: 10
+      write-timeout: 10
+    clients:
+      meteredusage-client: # spring bean name
+        base-url: "https://od-f3z3swnw6cancom.od22.appdirectondemand.com/"
+#        https://testcancom.appdirect.com/
+        security:
+          jwt: #Authentication: Bearer propagation
+            propagate: true
+          oauth1:
+            consumer-key: 0MoTYU4IRx
+#            7TokO41CxC
+            consumer-secret: HfgFmnzEwwmZKaCMarwu
+#            C82Jzg8NlsVjhlmazEUU
+            token:
+            token-secret:
+# frequency
+apicalls:
+  frequency: 10
+
+
+Path:
+  propertyfilepath : /metered-usage/src/main/resources/Account_Id.csv
+
+server:
+  port: 8084

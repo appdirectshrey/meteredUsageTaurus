@@ -1,0 +1,6 @@
+rootProject.name = 'meteredUsageTaurus'
+include 'testTaurus'
+include 'api-sdk'
+include 'api-sdk'
+include 'metered-usage'
+

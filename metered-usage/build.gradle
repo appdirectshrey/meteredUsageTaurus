@@ -1,0 +1,55 @@
+apply plugin: 'org.springframework.boot'
+
+
+task fatJar(type: Jar) {
+    manifest {
+        attributes 'Implementation-Title': 'Taurus1',
+                'Implementation-Version': 2.0,
+                'Main-Class': 'com/appdirect/tools/MeteredUsageTaurusApplication'
+    }
+    baseName = project.name + '-all'
+    from { configurations.testCompile.collect { it.isDirectory() ? it : zipTree(it) } }
+    from { configurations.compile.collect { it.isDirectory() ? it : zipTree(it) } }
+//    from { (configurations.runtime).collect { it.isDirectory() ? it : zipTree(it) } }
+    exclude('/**/module-info.class', '/**/ModuleUtils.class', '/**/ModuleUtil.class', 'META-INF/*.SF', 'META-INF/*.DSA', 'META-INF/*.RSA', '/**/ModuleUtils$ModuleReferenceScanner.class')
+    with jar
+}
+
+
+
+dependencies {
+
+    compile "org.springframework.boot:spring-boot-configuration-processor"
+
+//    compile group: 'org.springframework.boot', name: 'spring-boot-maven-plugin', version: '2.1.9.RELEASE'
+//    compile group: 'org.springframework.boot', name: 'spring-boot-starter', version: '2.1.9.RELEASE'
+//    compile group: 'org.springframework', name: 'spring-core', version: '5.1.9.RELEASE'
+//    compile group: 'org.springframework.boot', name: 'spring-boot-starter-web', version: '2.1.9.RELEASE'
+//    compile group: 'commons-logging', name: 'commons-logging', version: '1.2'
+//    compile group: 'org.projectlombok', name: 'lombok', version: '1.18.12'
+
+
+//    compile group: 'org.springframework.boot', name: 'spring-boot-starter-test', version: '2.1.9.RELEASE'
+
+    compile(
+            project(':api-sdk'),
+            // swagger
+            "io.swagger:swagger-annotations:1.5.16",
+
+            "org.springframework.boot:spring-boot-starter",
+
+            compile("com.appdirect.billing.microservice.platform:billing-retrofit:0.5.0-rc2") {
+                exclude group: "org.springframework.security", module: 'spring-security-jwt'
+                exclude group: "org.springframework.security.oauth",
+                        module: 'spring-security-oauth'
+                exclude group: "org.springframework.security.oauth", module: 'spring-security-oauth2'
+            },
+
+            "com.squareup.retrofit2:retrofit:2.4.0",
+            "com.squareup.retrofit2:converter-jackson:2.4.0",
+//            "com.squareup.retrofit2:adapter-java8:2.4.0",
+            "net.rakugakibox.spring.boot:orika-spring-boot-starter:1.8.0",
+            "org.springframework.cloud:spring-cloud-starter-zipkin:2.1.0.RELEASE",
+            "io.zipkin.brave:brave-instrumentation-okhttp3:5.5.1"
+    )
+}
